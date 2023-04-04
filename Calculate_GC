@@ -1,0 +1,15 @@
+from Bio import SeqIO  # To parse FASTA files
+
+fasta_file = SeqIO.parse('BLAST/BLAST_Exons/Sequences/top_6.txt', 'fasta')
+
+def calculate_GC_content(string):
+    total = len(string)
+    GC_content = (string.count('G') + string.count('C')) / total*100
+
+    return GC_content
+
+for i in fasta_file:
+    name = i.id
+    seq = i.seq
+    GC = round(calculate_GC_content(seq), 2)
+    print(f'{name}: {GC}%')
