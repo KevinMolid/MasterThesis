@@ -1,0 +1,14 @@
+%run Functions.ipynb  # To get functions
+
+# Campestris genome FASTA file
+camp_genome = fastaToList(f'Campestris/Fasta/DNA/Genome.txt')
+
+# Monogyna genome FASTA file
+mono_genome = fastaToList(f'Monogyna/Fasta/DNA/Genome.txt')
+
+# Set genome to scan
+scaffold_list = camp_genome
+
+# Get sequence with target sequence plus extension
+seq = expand_sequence("Ccam0.32_scaffold167", 612335, 611914, 5000)
+print(seq)
