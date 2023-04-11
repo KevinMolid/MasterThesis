@@ -1,0 +1,137 @@
+%run Functions.ipynb  # To get functions
+
+# pip3 install pandas
+import pandas as pd  # To get access to the DataFrame class and related functions
+
+import itertools  # For finding combinations within a list of elements
+
+# pip3 install biopython
+from Bio import SeqIO, pairwise2  # SeqIO: To parse FASTA files, pairwise2: For sequence alignment
+from Bio.Seq import Seq  # To get access to the Seq class
+from Bio.pairwise2 import format_alignment  # To format alignment output
+from Bio.SubsMat import MatrixInfo as matlist  # To get access to the Blosum62 scoring dictionary
+
+# Set input variables
+folder_name = 'Monogyna'
+treshold = 200
+
+# Parsing genome FASTA file
+genome_file = SeqIO.parse(f'{folder_name}/Fasta/DNA/Genome.txt', 'fasta')
+
+# Parsing histone scaffolds FASTA file
+scaffold_file = SeqIO.parse(f'{folder_name}/Fasta/DNA/Histone_scaffolds.txt', 'fasta')
+
+# Parsing histone transcripts FASTA file
+transcript_file = SeqIO.parse(f'{folder_name}/Fasta/DNA/Histone_transcripts.txt', 'fasta')
+
+# Making a list of transcript seq objects
+transcript_list = [record for record in transcript_file]
+
+# Making a list of transcript IDs
+transcript_ids = [record.id for record in transcript_list]
+
+# Extracting scaffold names from id
+transcript_scaffolds = []
+for name in transcript_ids:
+    split_name = name.split('_')
+    new_name = split_name[1]
+    transcript_scaffolds.append(new_name)
+    
+# Get rid of multiples
+transcript_scaffolds = list(set(transcript_scaffolds))
+
+# For each scaffold name, 
+
+output_filenames = []  # Save output filenames in a list for later use
+for scaffold_name in transcript_scaffolds:
+    scaffold_dict = {}  # Initiate empty dictionary
+    output_filename = f'{folder_name}/Output/Transcripts_by_scaffold/{scaffold_name}.txt'
+    output_filenames.append(output_filename)
+    for record in transcript_list:
+        if scaffold_name in record.id:
+            scaffold_dict[record.id] = record
+    # Writing from dictionary to new FASTA file
+    with open(output_filename, 'w') as handle:
+        SeqIO.write(scaffold_dict.values(), handle, 'fasta')
+        
+        # Making a dictionary with scaffold names as keys and lists of transcript sequences as values
+
+#     key              value
+#     scaffold_name    [List of seq objects]
+
+transcript_dict = {}
+
+# Scanning through transcript files and storing transcripts from scaffolds containing more
+# than one sequence in transcript_dict
+for filename in output_filenames:
+    lines = check_fasta_for_number_of_lines(filename)
+    if lines > 1:
+        # parse FASTA
+        fasta = SeqIO.parse(filename, 'fasta')
+        # Store sequences in list
+        transcript_list = [record for record in fasta]
+        # add list to dictionary
+        k = filename.replace(f'{folder_name}/Output/Transcripts_by_scaffold/', '').replace('.txt', '')
+        transcript_dict[k] = transcript_list
+        
+# Find how many scaffolds have multiple sequences
+length = len(list(transcript_dict.keys()))
+
+"""
+This cell takes a long time to run depending on the amount of coding sequences in the scaffold.
+Remove 'break' to run the cell!
+
+Largest scaffold: 69 different sequences -> (2346 combinations) -> Takes around 5 hours to run on macbook!
+
+"""
+
+# For each scaffold name, make a new file containing all the matches longer than the treshold value.
+for scaffold_name in transcript_dict.keys():
+    
+    break  # Remove break to run the cell!
+
+    filename = f'{folder_name}/Output/Transcripts_by_scaffold/{scaffold_name}.txt'
+
+    output_filename = f'{folder_name}/Output/Matches_by_scaffold/{scaffold_name}.txt'
+    nomatch_filename = f'{folder_name}/Output/Matches_by_scaffold/No_matches/{scaffold_name}.txt'
+
+    # Print info to screen to check what scaffold is being matched and the amount of
+    # sequences within the scaffold
+    print(scaffold_name, len(transcript_dict[scaffold_name]))
+
+    # Find matches
+    output = match_all_seqs(filename, treshold)
+
+    # Write output to new file
+    if output == []:
+        with open(nomatch_filename, 'w') as f:
+            f.write('No matches')
+    else:
+        with open(output_filename, 'w') as f:
+            for i in output:
+                f.write('%s\n' % i)
+                
+                import glob
+
+output_filename = f'{folder_name}/Output/Matches_by_scaffold/All_matches/All_matches.txt'
+
+filenames = glob.glob(f'{folder_name}/Output/Matches_by_scaffold/*.txt')
+            
+with open(output_filename, 'w') as outfile:
+    for fname in filenames:
+        with open(fname, 'r') as readfile:
+            outfile.write(readfile.read())
+            
+# Parse file
+file = f'{folder_name}/Output/Matches_by_scaffold/All_matches/All_matches.txt'
+count = 0
+matches_list = []
+for record in SeqIO.parse(file, 'fasta'):
+    count += 1
+    matches_list.append(record.seq)
+    
+# Get rid of multiples
+matches_list = list(set(matches_list))
+  
+# Print the amount of matches found
+print(f'Found {len(matches_list)} unique matches!\n')
