@@ -1,0 +1,8 @@
+Prep database for BLAST
+Run command in bash from the folder containing the target database FASTA file.
+
+/usr/local/ncbi/blast/bin/makeblastdb -in cuscuta_genom.fasta -dbtype nucl
+
+Run BLASTn
+Run command in bash from the folder containing the query FASTA file.
+/usr/local/ncbi/blast/bin/blastn -query /Volumes/OneTouch/Master/Monogyna/Output/Exon_matches/All_matches/Monogyna_matches_to_check.fasta -db Reflexa1_genome.fasta -out blast_output.txt -outfmt 6 -evalue 1e-10
